@@ -1,0 +1,65 @@
+# The Dockerfile COPYs only app/, src/, configs/, pyproject.toml and README.md,
+# so this list is defence in depth plus a smaller build context.
+
+# Version control
+.git
+.gitattributes
+.gitignore
+
+# Python artifacts
+__pycache__
+*.pyc
+*.pyo
+*.egg-info
+dist/
+build/
+.eggs/
+.pytest_cache/
+.coverage
+htmlcov/
+.ruff_cache/
+
+# Virtual environments
+.venv
+venv
+env
+
+# IDE / editor
+.vscode
+.idea
+.cursor
+*.swp
+*.swo
+
+# CI and tooling
+.github/
+Makefile
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Secrets and environment: never bake credentials into an image
+.env
+.env.*
+
+# Locally saved model weights
+whisper-large-v3-quantized-bf16/
+models/
+*.safetensors
+*.bin
+
+# Not needed at runtime
+tests/
+scripts/
+docs/
+sample_audios/
+
+# Generated artifacts and private notes
+*.pdf
+IMPLEMENTATION_PLAN_*.md
+HANDOFF_*.md
+evaluation_dashboard.html
+evaluation_results.csv
+*.~lock*

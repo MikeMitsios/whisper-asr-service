@@ -1,0 +1,98 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push to the same branch supersedes the previous run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Floor and current: pyproject declares requires-python >=3.10.
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+
+      - name: Install system audio libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg libsndfile1
+
+      - name: Install dependencies
+        # CPU wheels: the runner has no GPU, and the CUDA build is ~2.5 GB.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-cpu.txt
+          pip install -e ".[dev,eval,viz]" --no-deps
+
+      - name: Run tests
+        # The default marker selection excludes slow and integration, so this
+        # needs no network and no Redis.
+        run: pytest -v
+
+      - name: Verify the app imports without loading a model
+        env:
+          CONFIG_PATH: configs/cpu.yml
+        run: |
+          python - <<'PY'
+          import sys, time
+          start = time.perf_counter()
+          import app.main
+          elapsed = time.perf_counter() - start
+          assert not hasattr(app.main.app.state, "transcriber"), \
+              "model was constructed at import time"
+          for module in ("transformers", "optimum.quanto", "datasets"):
+              assert module not in sys.modules, f"{module} imported at module level"
+          print(f"imported in {elapsed:.2f}s with no model load")
+          PY
+
+      - name: Verify both shipped configs load
+        run: |
+          python -c "
+          from whisper_asr.config import load_config
+          for path in ('configs/default.yml', 'configs/cpu.yml'):
+              print(path, load_config(path)['model_id'])
+          "
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: whisper-asr-service:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Confirm it runs as non-root
+        run: |
+          user=$(docker run --rm whisper-asr-service:ci whoami)
+          test "$user" = "appuser" || { echo "running as $user"; exit 1; }

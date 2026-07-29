@@ -1,0 +1,27 @@
+# GPU override. Compose with the base file:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+#
+# Requires the NVIDIA Container Toolkit on the host:
+# https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+#
+# This override also switches the build to the CUDA torch wheels, so the image
+# is substantially larger than the CPU one.
+
+services:
+  whisper:
+    build:
+      context: .
+      args:
+        REQUIREMENTS: requirements.txt
+    environment:
+      # configs/default.yml is CUDA + bfloat16, the configuration the
+      # quantization experiments selected.
+      CONFIG_PATH: configs/default.yml
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

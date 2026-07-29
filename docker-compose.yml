@@ -1,0 +1,45 @@
+# CPU stack. Defaults to configs/cpu.yml (whisper-tiny), so it starts on any
+# machine without a GPU. For GPU inference:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      # Override with REDIS_PORT if 6379 is taken on the host.
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  whisper:
+    build: .
+    restart: unless-stopped
+    ports:
+      # Override with API_PORT if 8000 is taken on the host.
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Persist the HuggingFace cache so weights are not re-downloaded on every
+      # restart. Path matches HF_HOME for the non-root user in the image.
+      - hf-cache:/home/appuser/.cache/huggingface
+      # Bind-mount configs so a config change needs no rebuild.
+      - ./configs:/app/configs:ro
+    environment:
+      CONFIG_PATH: configs/cpu.yml
+      REDIS_URL: redis://redis:6379/0
+      # Only needed for gated models or datasets. Optional.
+      HF_TOKEN: ${HF_TOKEN:-}
+    depends_on:
+      redis:
+        # Wait for Redis to answer PING, not merely to have been created.
+        condition: service_healthy
+
+volumes:
+  hf-cache:
+  redis-data:
