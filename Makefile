@@ -10,11 +10,11 @@ help: ## Show this help
 
 install: ## Install the package and dev/eval/viz extras (CPU torch)
 	$(PYTHON) -m pip install -r requirements-cpu.txt
-	$(PYTHON) -m pip install -e ".[dev,eval,viz]" --no-deps
+	$(PYTHON) -m pip install -e ".[dev,eval,viz]"
 
 install-gpu: ## Install with CUDA torch wheels
 	$(PYTHON) -m pip install -r requirements.txt
-	$(PYTHON) -m pip install -e ".[dev,eval,viz]" --no-deps
+	$(PYTHON) -m pip install -e ".[dev,eval,viz]"
 
 dev: ## Run the API locally with hot reload (CPU config)
 	CONFIG_PATH=$(CONFIG) $(PYTHON) -m uvicorn app.main:app --reload

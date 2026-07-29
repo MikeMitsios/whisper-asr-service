@@ -133,10 +133,13 @@ docker compose -f docker-compose.yml -f docker-compose.gpu.yml up -d
 ### Local
 
 ```bash
-pip install -r requirements-cpu.txt          # or requirements.txt for CUDA 12.8
-pip install -e ".[dev,eval,viz]" --no-deps
+pip install -r requirements-cpu.txt   # or requirements.txt for CUDA 12.8
+pip install -e ".[dev,eval,viz]"
 CONFIG_PATH=configs/cpu.yml uvicorn app.main:app --reload
 ```
+
+Install the requirements file first: it pins torch to the CPU or CUDA wheel, and the editable
+install then sees that pin as already satisfied instead of pulling a different build from PyPI.
 
 `ffmpeg` and `libsndfile` need to be installed for mp3, m4a and ogg decoding. On a POSIX shell,
 `make help` lists shortcuts for all of the above.
