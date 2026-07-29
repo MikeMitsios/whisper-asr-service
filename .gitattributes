@@ -1,0 +1,11 @@
+# Normalise line endings so the repo is identical on Windows, macOS and Linux.
+* text=auto eol=lf
+
+# Binary assets -- never touch these.
+*.mp3 binary
+*.wav binary
+*.flac binary
+*.ogg binary
+*.png binary
+*.safetensors binary
+*.bin binary

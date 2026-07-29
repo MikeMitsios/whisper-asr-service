@@ -1,0 +1,58 @@
+# Byte-compiled / optimized
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Sample audio outputs
+sample_audios/
+
+# Hugging Face / model cache
+.cache/
+*.bin
+*.safetensors
+
+# Generated evaluation artifacts
+evaluation_dashboard.html
+
+# Private planning artifacts
+IMPLEMENTATION_PLAN_*.md
+REFACTOR_PLAN_*.md
+HANDOFF_*.md
+_private/
+*.pdf
+
+# Logs
+*.log

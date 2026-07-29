@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "whisper-asr"
+version = "0.1.0"
+description = "Whisper ASR service with pipeline and direct model backends, long-form audio, and quantization benchmarks"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "torch==2.10.0",
+    "torchaudio==2.10.0",
+    # 4.39 is the floor for long-form sequential generate(); <5 because the
+    # `torch_dtype` kwarg is slated for removal there.
+    "transformers>=4.39.0,<5",
+    "datasets>=2.16.0",
+    "accelerate>=0.25.0",
+    "soundfile>=0.12.0",
+    "librosa>=0.10.0",
+    "scipy>=1.11.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "python-multipart>=0.0.6",
+    "PyYAML>=6.0",
+    "optimum-quanto>=0.2.0",
+    "redis[hiredis]>=5.0.0",
+    "huggingface_hub>=0.20.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+# Metrics for scripts/evaluation.py and whisper_asr.evaluator.
+eval = [
+    "jiwer>=3.0.0",
+    "sacrebleu>=2.3.0",
+    "tqdm>=4.66.0",
+]
+# Dashboard rendering for scripts/visualize.py.
+viz = [
+    "bokeh>=3.8.0",
+    "pandas>=2.0.0",
+]
+dev = [
+    "pytest>=7.4.0",
+    "httpx>=0.25.0",
+    "anyio>=4.0.0",
+    "ruff>=0.6.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+markers = [
+    "slow: loads real model weights; excluded from the default run",
+    "integration: needs a live external service such as Redis",
+]
+# The default run must stay offline, serverless and GPU-free.
+addopts = "-m 'not slow and not integration'"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "F",   # pyflakes
+    "I",   # isort
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+]
+
+[tool.ruff.lint.per-file-ignores]
+# FastAPI's Depends/File/Query in argument defaults is the framework's idiom,
+# not the mutable-default bug B008 exists to catch.
+"app/routers/*" = ["B008"]

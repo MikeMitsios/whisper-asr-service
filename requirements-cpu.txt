@@ -1,0 +1,6 @@
+# CPU-only install. Used by the Dockerfile and CI so neither pulls ~2.5 GB of
+# CUDA libraries into an image that has no GPU runtime.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.10.0+cpu
+torchaudio==2.10.0+cpu
+-r requirements-base.txt

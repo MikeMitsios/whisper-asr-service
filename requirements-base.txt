@@ -1,0 +1,32 @@
+# Everything except torch/torchaudio, whose wheel index differs between the
+# CPU and GPU installs. Do not install this file directly -- use
+# requirements.txt (GPU) or requirements-cpu.txt (CPU), both of which include it.
+
+# Model + inference
+transformers>=4.39.0,<5
+datasets>=2.16.0
+accelerate>=0.25.0
+optimum-quanto>=0.2.0
+
+# Audio I/O and resampling
+soundfile>=0.12.0
+librosa>=0.10.0
+scipy>=1.11.0
+
+# API
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+redis[hiredis]>=5.0.0
+PyYAML>=6.0
+huggingface_hub>=0.20.0
+python-dotenv>=1.0.0
+
+# Evaluation metrics (scripts/evaluation.py)
+jiwer>=3.0.0
+sacrebleu>=2.3.0
+tqdm>=4.66.0
+
+# Dashboard rendering (scripts/visualize.py)
+bokeh>=3.8.0
+pandas>=2.0.0
