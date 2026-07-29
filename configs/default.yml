@@ -1,0 +1,45 @@
+# Default configuration: the fastest setup that held quality in the
+# quantization experiments -- bfloat16 weights on GPU, no quantization.
+# See docs/EXPERIMENTS.md for how this was chosen.
+#
+# Running without a GPU? Use configs/cpu.yml instead.
+
+model_id: openai/whisper-large-v3
+device: cuda
+default_backend: direct # "pipeline" or "direct"
+torch_dtype: bfloat16 # "float16", "bfloat16", "float32" (default if omitted)
+target_sample_rate: 16000
+enable_streaming: true
+
+# torch.compile trades a long first-inference warm-up for faster steady state.
+compile_model: false
+
+# Long-form audio. Whisper's encoder window is 30s.
+#   auto - split anything longer. The direct backend runs the sequential
+#          algorithm (accurate); the pipeline backend chunks and batches (fast).
+#   off  - truncate at one window, the pre-fix behaviour.
+long_form_mode: auto
+chunk_length_s: 30 # encoder window, in seconds
+stride_length_s: 5 # overlap on each side of a window
+batch_size: 8 # windows per batch, pipeline backend only
+
+# Request limits. Over either one, the API returns 413 rather than OOMing.
+max_audio_seconds: 600
+max_upload_mb: 50
+
+gen_kwargs:
+  task: transcribe
+  language: en
+
+# Quantization is off by default -- it shrank the model but never improved
+# latency. Uncomment to reproduce those runs.
+# quantized_config:
+#   weights: qint8       # qint2 | qint4 | qint8 | qfloat8
+#   activations: qint8   # or null to quantize weights only
+# enable_calibration: true  # required whenever activations are quantized
+
+# Write the loaded (and optionally quantized) model to this directory on startup.
+# save_model_id: whisper-large-v3-quantized-bf16
+
+redis_url: redis://localhost:6379/0
+cache_ttl: 3600 # seconds

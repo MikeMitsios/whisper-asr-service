@@ -1,0 +1,27 @@
+# CPU configuration. Uses whisper-tiny so the service actually starts on a
+# laptop -- large-v3 on CPU is roughly 30s per 30s of audio.
+#
+# This is the config the Docker image and the test suite default to.
+
+model_id: openai/whisper-tiny
+device: cpu
+default_backend: direct
+torch_dtype: float32
+target_sample_rate: 16000
+enable_streaming: true
+compile_model: false
+
+long_form_mode: auto
+chunk_length_s: 30
+stride_length_s: 5
+batch_size: 4 # smaller than the GPU default -- CPU batching buys little
+
+max_audio_seconds: 600
+max_upload_mb: 50
+
+gen_kwargs:
+  task: transcribe
+  language: en
+
+redis_url: redis://localhost:6379/0
+cache_ttl: 3600 # seconds
